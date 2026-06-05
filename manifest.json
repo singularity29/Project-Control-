@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Control",
+  "version": "2.0.0",
+  "description": "Granular UI structural blocking with client-side AI content filtering.",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["tf.min.js", "nsfwjs.min.js", "content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
