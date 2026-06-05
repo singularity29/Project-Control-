@@ -6,7 +6,13 @@ const defaultSettings = {
     'yt-trend': false, 'yt-mix': false, 'yt-likes': false, 'yt-you': false, 'yt-subs': false,
     'yt-create': false, 'yt-bell': false, 'yt-ham': false, 'yt-prof': false, 'yt-desc': false, 'yt-search-sugg': false,
     'ig-reel': false, 'ig-story': false, 'ig-comm': false, 'ig-nsfw': false, 'adult-site': false, 'word-block': false,
-    'ig-suggested': false, 'ig-feed-rec': false, 'ig-search': false, 'ig-notif': false, 'ig-create': false, 'ig-dash': false
+    'ig-suggested': false, 'ig-feed-rec': false, 'ig-search': false, 'ig-notif': false, 'ig-create': false, 'ig-dash': false,
+    'x-home-btn': false, 'x-follow-page-btn': false, 'x-chat-btn': false, 'x-creator-studio-btn': false, 
+    'x-premium-btn': false, 'x-profile-btn': false, 'x-search-bar': false, 'x-whats-happening': false, 
+    'x-float-grok': false, 'x-float-chat': false,
+    'x-explore': false, 'x-explore-foryou': false, 'x-explore-trend': false, 'x-explore-news': false, 'x-explore-sports': false, 
+    'x-explore-ent': false, 'x-notif': false, 'x-follow-btn': false, 'x-who-to-follow': false, 'x-home-rec': false, 
+    'x-grok': false, 'x-bookmarks': false, 'x-post-btn': false, 'x-home-foryou-tab': false, 'x-home-following-tab': false
 };
 
 const explicitBlacklist = ['porn', 'nsfw', 'xvideo', 'pornhub', 'hentai', 'rule34', 'xxx', 'naked', 'nude', 'erotic'];
@@ -65,12 +71,74 @@ const applyRules = () => {
         if (settings['yt-ham']) cssRules += `yt-icon-button#guide-button { visibility: hidden !important; } `;
         if (settings['yt-prof']) cssRules += `yt-img-shadow#avatar, #avatar-btn, .ytp-profile-icon { display: none !important; } `;
         if (settings['yt-desc']) cssRules += `ytd-watch-metadata #description, ytd-video-description-infocards-section-renderer { display: none !important; } `;
-        if (settings['yt-search-sugg']) cssRules += `ytd-searchbox #suggestions, .sbsb_a, .sbdd_b, .gstl_50.sbdd_a, ul.sbsb_b, div[role="listbox"], .ytd-searchbox-spt { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; position: absolute !important; top: -9999px !important; } `;
+        if (settings['yt-search-sugg']) cssRules += `.sbdd_b, .sbsb_a, ytd-searchbox #suggestions, .ytd-searchbox-spt { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } `;
     }
 
     if (host.includes('instagram.com')) {
         if (settings['ig-reel']) cssRules += `a[href^="/reels/"], main article div:has(a[href^="/reels/"]), [aria-label="Reels"] { display: none !important; } `;
         if (settings['ig-comm']) cssRules += `form textarea, div[role="button"]:has(svg[aria-label="Comment"]), ul[class*="comments"] { display: none !important; } `;
+    }
+
+    if (host.includes('x.com') || host.includes('twitter.com')) {
+        
+        // 1. ANNIHILATE FLOATING PORTALS (#layers)
+        if (settings['x-float-chat']) {
+            cssRules += `
+                [data-testid="DMDrawer"],
+                #layers div:has([data-testid="DMDrawer"]) { 
+                    display: none !important; visibility: hidden !important; 
+                    pointer-events: none !important; transform: scale(0) !important; 
+                } 
+            `;
+        }
+        if (settings['x-float-grok']) {
+            cssRules += `
+                [data-testid="grokFab"], button[aria-label="Grok"],
+                #layers div:has([data-testid="grokFab"]) { 
+                    display: none !important; visibility: hidden !important; 
+                    pointer-events: none !important; transform: scale(0) !important; 
+                } 
+            `;
+        }
+
+        // 2. THE BLANK BOX WIPE (Traversing Up to Containers)
+        if (settings['x-who-to-follow']) {
+            cssRules += `
+                aside[aria-label="Who to follow"],
+                aside[aria-label="Subscribe to Premium"],
+                [data-testid="sidebarColumn"] div:has(> div > aside[aria-label="Who to follow"]),
+                [data-testid="sidebarColumn"] div:has(> div > div > aside[aria-label="Who to follow"]) { 
+                    display: none !important; border: none !important; margin: 0 !important; padding: 0 !important;
+                } 
+            `;
+        }
+
+        if (settings['x-whats-happening']) {
+            cssRules += `
+                [aria-label="Timeline: Trending now"], 
+                [aria-label="Timeline: Explore"],
+                [data-testid="sidebarColumn"] div:has(> div > [aria-label="Timeline: Trending now"]),
+                [data-testid="sidebarColumn"] div:has(> div > div > [aria-label="Timeline: Trending now"]) { 
+                    display: none !important; border: none !important; margin: 0 !important; padding: 0 !important;
+                } 
+            `;
+        }
+
+        // 3. NUCLEAR SIDEBAR PURGE (If both are checked, kill all skeletons)
+        if (settings['x-whats-happening'] && settings['x-who-to-follow']) {
+            cssRules += `
+                [data-testid="sidebarColumn"] > div > div > div > div > div:not(:has([role="search"])) {
+                    display: none !important; border: none !important;
+                }
+            `;
+        }
+
+        // Other internal blocks
+        if (settings['x-explore']) cssRules += `[data-testid="AppTabBar_Explore_Link"], a[href^="/explore"] { display: none !important; } `;
+        if (settings['x-notif']) cssRules += `[data-testid="AppTabBar_Notifications_Link"], a[href^="/notifications"] { display: none !important; } `;
+        if (settings['x-grok'] || settings['x-float-grok']) cssRules += `a[href*="/i/grok"] { display: none !important; } `;
+        if (settings['x-post-btn']) cssRules += `[data-testid="SideNav_NewTweet_Button"], a[href="/compose/tweet"] { display: none !important; } `;
+        if (settings['x-search-bar']) cssRules += `[role="search"] { display: none !important; } `;
     }
 
     styleNode.textContent = cssRules;
@@ -117,62 +185,136 @@ const sweepSidebarItem = (settingKey, textLabel) => {
     });
 };
 
+const sweepXSidebarTextNode = (settingKey, exactTextMatch) => {
+    if (!settings[settingKey]) return;
+    document.querySelectorAll('a, div[role="button"], div[role="menuitem"]').forEach(el => {
+        if (el.innerText && el.innerText.trim().startsWith(exactTextMatch)) {
+            const navItem = el.closest('a') || el.closest('div[role="button"]') || el;
+            navItem.style.setProperty('display', 'none', 'important');
+        }
+    });
+};
+
 const handleDynamicBlocks = () => {
     const host = window.location.hostname;
-    if (!host.includes('instagram.com')) return;
 
-    if (settings['ig-story']) {
-        document.querySelectorAll('canvas').forEach(canvas => {
-            const storyTray = canvas.closest('ul') || canvas.closest('div[role="menu"]');
-            if (storyTray) {
-                storyTray.style.setProperty('display', 'none', 'important');
-                const sectionContainer = storyTray.parentElement;
-                if (sectionContainer && sectionContainer.tagName === 'DIV') {
-                    sectionContainer.style.setProperty('display', 'none', 'important');
-                    const outerMargin = sectionContainer.parentElement;
-                    if (outerMargin) {
-                        outerMargin.style.setProperty('margin-top', '0px', 'important');
-                        outerMargin.style.setProperty('padding-top', '0px', 'important');
+    if (host.includes('instagram.com')) {
+        if (settings['ig-story']) {
+            document.querySelectorAll('canvas').forEach(canvas => {
+                const storyTray = canvas.closest('ul') || canvas.closest('div[role="menu"]');
+                if (storyTray) {
+                    storyTray.style.setProperty('display', 'none', 'important');
+                    const sectionContainer = storyTray.parentElement;
+                    if (sectionContainer && sectionContainer.tagName === 'DIV') {
+                        sectionContainer.style.setProperty('display', 'none', 'important');
+                        const outerMargin = sectionContainer.parentElement;
+                        if (outerMargin) {
+                            outerMargin.style.setProperty('margin-top', '0px', 'important');
+                            outerMargin.style.setProperty('padding-top', '0px', 'important');
+                        }
                     }
                 }
-            }
-        });
-        
-        document.querySelectorAll('[aria-label*="Story" i], [aria-label*="story" i]').forEach(el => {
-            const tray = el.closest('ul');
-            if (tray) {
-                tray.style.setProperty('display', 'none', 'important');
-                if (tray.parentElement) tray.parentElement.style.setProperty('display', 'none', 'important');
-            }
-        });
-
-        document.querySelectorAll('button[aria-label="Next" i], button[aria-label="Go back" i], button[aria-label="Right chevron" i], button[aria-label="Left chevron" i]').forEach(btn => {
-            if (!btn.closest('article')) {
-                btn.style.setProperty('display', 'none', 'important');
-                if (btn.parentElement && btn.parentElement.tagName === 'DIV') {
-                    btn.parentElement.style.setProperty('display', 'none', 'important');
+            });
+            document.querySelectorAll('[aria-label*="Story" i], [aria-label*="story" i]').forEach(el => {
+                const tray = el.closest('ul');
+                if (tray) {
+                    tray.style.setProperty('display', 'none', 'important');
+                    if (tray.parentElement) tray.parentElement.style.setProperty('display', 'none', 'important');
                 }
-            }
-        });
+            });
+            document.querySelectorAll('button[aria-label="Next" i], button[aria-label="Go back" i], button[aria-label="Right chevron" i], button[aria-label="Left chevron" i]').forEach(btn => {
+                if (!btn.closest('article')) {
+                    btn.style.setProperty('display', 'none', 'important');
+                    if (btn.parentElement && btn.parentElement.tagName === 'DIV') btn.parentElement.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+        sweepSidebarItem('ig-search', 'Search');
+        sweepSidebarItem('ig-notif', 'Notifications');
+        sweepSidebarItem('ig-create', 'Create');
+        sweepSidebarItem('ig-dash', 'Dashboard');
+
+        if (settings['ig-suggested'] || settings['ig-feed-rec']) {
+            document.querySelectorAll('span, h3, h4').forEach(el => {
+                const txt = el.innerText;
+                if (settings['ig-suggested'] && (txt === 'Suggested for you' || txt === 'See all suggested')) {
+                    const block = el.closest('div[style*="flex-direction: column"]') || el.parentElement?.parentElement?.parentElement;
+                    if (block && block.id !== 'mount_0_0_') block.style.display = 'none';
+                }
+                if (settings['ig-feed-rec'] && (txt === 'Suggested posts' || txt === 'Suggested post')) {
+                    const article = el.closest('article');
+                    if (article) article.style.display = 'none';
+                }
+            });
+        }
     }
 
-    sweepSidebarItem('ig-search', 'Search');
-    sweepSidebarItem('ig-notif', 'Notifications');
-    sweepSidebarItem('ig-create', 'Create');
-    sweepSidebarItem('ig-dash', 'Dashboard');
+    if (host.includes('x.com') || host.includes('twitter.com')) {
+        const path = window.location.pathname;
+        const isExplore = path.includes('/explore');
+        const isHome = path === '/home' || path === '/';
 
-    if (settings['ig-suggested'] || settings['ig-feed-rec']) {
-        document.querySelectorAll('span, h3, h4').forEach(el => {
-            const txt = el.innerText;
-            if (settings['ig-suggested'] && (txt === 'Suggested for you' || txt === 'See all suggested')) {
-                const block = el.closest('div[style*="flex-direction: column"]') || el.parentElement?.parentElement?.parentElement;
-                if (block && block.id !== 'mount_0_0_') block.style.display = 'none';
+        // Sidebar Text Sweeps
+        sweepXSidebarTextNode('x-home-btn', 'Home');
+        sweepXSidebarTextNode('x-follow-page-btn', 'Follow');
+        sweepXSidebarTextNode('x-chat-btn', 'Chat');
+        sweepXSidebarTextNode('x-bookmarks', 'Bookmarks');
+        sweepXSidebarTextNode('x-creator-studio-btn', 'Creator Studio');
+        sweepXSidebarTextNode('x-premium-btn', 'Premium');
+        sweepXSidebarTextNode('x-profile-btn', 'Profile');
+
+        // Bookmarks Page Absolute Blanking
+        if (settings['x-bookmarks'] && path.includes('/bookmarks')) {
+            document.querySelectorAll('[data-testid="primaryColumn"]').forEach(col => col.style.setProperty('display', 'none', 'important'));
+        }
+
+        // Backup DOM Sweeper for What's Happening Containers
+        if (settings['x-whats-happening']) {
+            document.querySelectorAll('h2, span').forEach(el => {
+                const text = el.innerText;
+                if (text && (text.includes('What’s happening') || text.includes("What's happening"))) {
+                    const container = el.closest('section') || el.closest('aside') || el.parentElement?.parentElement?.parentElement;
+                    if (container) container.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        // Top Navigation Tabs
+        document.querySelectorAll('[role="tab"], [role="presentation"]').forEach(tab => {
+            const text = tab.innerText.trim();
+            if (isExplore) {
+                if (settings['x-explore-foryou'] && text === 'For you') tab.style.setProperty('display', 'none', 'important');
+                if (settings['x-explore-trend'] && text === 'Trending') tab.style.setProperty('display', 'none', 'important');
+                if (settings['x-explore-news'] && text === 'News') tab.style.setProperty('display', 'none', 'important');
+                if (settings['x-explore-sports'] && text === 'Sports') tab.style.setProperty('display', 'none', 'important');
+                if (settings['x-explore-ent'] && text === 'Entertainment') tab.style.setProperty('display', 'none', 'important');
             }
-            if (settings['ig-feed-rec'] && (txt === 'Suggested posts' || txt === 'Suggested post')) {
-                const article = el.closest('article');
-                if (article) article.style.display = 'none';
+            if (isHome) {
+                if (settings['x-home-foryou-tab'] && text === 'For you') tab.style.setProperty('display', 'none', 'important');
+                if (settings['x-home-following-tab'] && text === 'Following') tab.style.setProperty('display', 'none', 'important');
             }
         });
+
+        // In-Feed Follow Buttons
+        if (settings['x-follow-btn']) {
+            document.querySelectorAll('div[role="button"], button').forEach(btn => {
+                if (btn.innerText.trim() === 'Follow') btn.style.setProperty('display', 'none', 'important');
+            });
+        }
+
+        // Home Feed Algorithms & In-Feed Skeletons
+        if (settings['x-home-rec'] || settings['x-who-to-follow']) {
+            document.querySelectorAll('aside[aria-label="Who to follow"]').forEach(aside => {
+                const cell = aside.closest('div[data-testid="cellInnerDiv"]');
+                if (cell) {
+                    cell.style.setProperty('display', 'none', 'important');
+                    cell.style.setProperty('height', '0px', 'important');
+                    cell.style.setProperty('margin', '0px', 'important');
+                    cell.style.setProperty('padding', '0px', 'important');
+                    cell.style.setProperty('border', 'none', 'important');
+                }
+            });
+        }
     }
 
     if (settings['ig-nsfw']) scanForNSFW();
