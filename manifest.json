@@ -1,19 +1,24 @@
 {
   "manifest_version": 3,
-  "name": "Control",
-  "version": "2.0.0",
-  "description": "Granular UI structural blocking with client-side AI content filtering.",
+  "name": "Project Control",
+  "version": "2.2.0",
+  "description": "Cognitive control and 18+ content blocker.",
   "permissions": [
     "storage"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
-      "js": ["tf.min.js", "nsfwjs.min.js", "content.js"],
-      "run_at": "document_start"
+      "matches": ["<all_urls>"],
+      "js": ["tf.min.js", "nsfwjs.min.js", "content.js"]
     }
   ]
 }
