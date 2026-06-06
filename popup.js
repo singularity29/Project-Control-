@@ -4,7 +4,7 @@ setTimeout(() => { document.body.style.opacity = 1; }, 10);
 const toggles = [
     // YouTube
     'yt-thumb', 'yt-short', 'yt-home', 'yt-comm', 'yt-side', 'yt-trend', 'yt-mix', 
-    'yt-likes', 'yt-you', 'yt-subs', 'yt-create', 'yt-bell', 'yt-ham', 'yt-prof', 'yt-desc', 'yt-search-sugg',
+    'yt-likes', 'yt-you', 'yt-subs', 'yt-create', 'yt-bell', 'yt-ham', 'yt-prof', 'yt-desc', 'yt-search-sugg', 'yt-sponsor',
     // Instagram
     'ig-reel', 'ig-story', 'ig-comm', 'ig-suggested', 'ig-feed-rec', 'ig-search', 'ig-notif', 'ig-create', 'ig-dash',
     // Global NSFW

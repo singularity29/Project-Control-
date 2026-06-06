@@ -3,18 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        html { width: 340px; min-height: 550px; background: #0a0a0a; }
-        body { width: 100%; height: 100%; font-family: monospace; padding: 15px; box-sizing: border-box; color: #eaeaea; margin: 0; overflow-x: hidden; }
-        .section-header { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #222; padding: 8px 0; margin-top: 12px; color: #00ff66; font-weight: bold; }
+        :root {
+            --bg-base: #090e10;
+            --bg-surface: #111c1f;
+            --emerald-core: #00ff88;
+            --emerald-glow: rgba(0, 255, 136, 0.4);
+            --text-main: #e2f1ec;
+            --text-muted: #8ba99e;
+        }
+
+        html { width: 340px; min-height: 550px; background: var(--bg-base); }
+        body { width: 100%; height: 100%; font-family: 'Inter', monospace; padding: 15px; box-sizing: border-box; color: var(--text-main); margin: 0; overflow-x: hidden; }
+        
+        .section-header { 
+            display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--bg-surface); 
+            padding: 8px 0; margin-top: 12px; color: var(--emerald-core); font-weight: bold; 
+            text-shadow: 0 0 5px var(--emerald-glow); 
+        }
         .section-header svg { width: 18px; height: 18px; fill: currentColor; }
-        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 11px; }
-        .sub-toggle { margin-left: 20px; color: #aaa; border-left: 1px solid #333; padding-left: 10px; }
-        .switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
+        
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 11px; font-weight: 600; letter-spacing: 0.5px;}
+        .sub-toggle { margin-left: 20px; color: var(--text-muted); border-left: 1px solid var(--bg-surface); padding-left: 10px; }
+        
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #222; transition: .2s; border-radius: 20px; border: 1px solid #333; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: #888; transition: .2s; border-radius: 50%; }
-        input:checked + .slider { background-color: #00ff66; border-color: #00ff66; }
-        input:checked + .slider:before { transform: translateX(14px); background-color: #000; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: var(--bg-surface); transition: .3s; border-radius: 20px; 
+            border: 1px solid #2a3a3a; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; 
+            background-color: var(--text-muted); transition: .3s; border-radius: 50%; 
+        }
+        
+        input:checked + .slider { 
+            background-color: var(--emerald-glow); border-color: var(--emerald-core); 
+            box-shadow: 0 0 10px var(--emerald-glow); 
+        }
+        input:checked + .slider:before { 
+            transform: translateX(16px); background-color: var(--emerald-core); 
+            box-shadow: 0 0 5px var(--emerald-core);
+        }
+
+        .alert-header { color: #ff3333; text-shadow: 0 0 5px rgba(255, 51, 51, 0.4); }
+        .alert-header svg { fill: #ff3333; }
+        .alert-switch input:checked + .slider { background-color: rgba(255, 51, 51, 0.2); border-color: #ff3333; box-shadow: 0 0 10px rgba(255, 51, 51, 0.4); }
+        .alert-switch input:checked + .slider:before { background-color: #ff3333; box-shadow: 0 0 5px #ff3333; }
     </style>
 </head>
 <body>
@@ -39,18 +74,20 @@
     <div class="toggle-row"><span>Hamburger Menu</span> <label class="switch"><input type="checkbox" id="yt-ham"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Profiles / Avatars</span> <label class="switch"><input type="checkbox" id="yt-prof"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Video Descriptions</span> <label class="switch"><input type="checkbox" id="yt-desc"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Search Suggestions (Dropdown)</span> <label class="switch"><input type="checkbox" id="yt-search-sugg"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Search Suggestions</span> <label class="switch"><input type="checkbox" id="yt-search-sugg"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>SponsorBlock (Timeline)</span> <label class="switch"><input type="checkbox" id="yt-sponsor"><span class="slider"></span></label></div>
 
     <!-- INSTAGRAM -->
     <div class="section-header">
         <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
         <span>INSTAGRAM</span>
     </div>
+    <div class="toggle-row" style="color: var(--emerald-core);"><span>NSFWJS AI Content Filter</span> <label class="switch"><input type="checkbox" id="ig-nsfw"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Reels</span> <label class="switch"><input type="checkbox" id="ig-reel"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Stories</span> <label class="switch"><input type="checkbox" id="ig-story"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Comments</span> <label class="switch"><input type="checkbox" id="ig-comm"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Suggested Accounts</span> <label class="switch"><input type="checkbox" id="ig-suggested"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Block Rec Feeds (Following Only)</span> <label class="switch"><input type="checkbox" id="ig-feed-rec"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Block Rec Feeds</span> <label class="switch"><input type="checkbox" id="ig-feed-rec"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Search Button</span> <label class="switch"><input type="checkbox" id="ig-search"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Notifications Button</span> <label class="switch"><input type="checkbox" id="ig-notif"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Create Button</span> <label class="switch"><input type="checkbox" id="ig-create"><span class="slider"></span></label></div>
@@ -69,36 +106,35 @@
     <div class="toggle-row"><span>Premium Button</span> <label class="switch"><input type="checkbox" id="x-premium-btn"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Profile Button</span> <label class="switch"><input type="checkbox" id="x-profile-btn"><span class="slider"></span></label></div>
     
-    <div class="toggle-row"><span>Search Bar (Right Column)</span> <label class="switch"><input type="checkbox" id="x-search-bar"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Search Bar (Right)</span> <label class="switch"><input type="checkbox" id="x-search-bar"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>"What's happening" Box</span> <label class="switch"><input type="checkbox" id="x-whats-happening"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Floating Grok (Bottom Right)</span> <label class="switch"><input type="checkbox" id="x-float-grok"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Floating Chat (Bottom Right)</span> <label class="switch"><input type="checkbox" id="x-float-chat"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Floating Grok</span> <label class="switch"><input type="checkbox" id="x-float-grok"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Floating Chat</span> <label class="switch"><input type="checkbox" id="x-float-chat"><span class="slider"></span></label></div>
 
     <div class="toggle-row"><span>Explore Page (Entire)</span> <label class="switch"><input type="checkbox" id="x-explore"><span class="slider"></span></label></div>
-    <div class="toggle-row sub-toggle"><span>├ Explore: For you</span> <label class="switch"><input type="checkbox" id="x-explore-foryou"><span class="slider"></span></label></div>
-    <div class="toggle-row sub-toggle"><span>├ Explore: Trending</span> <label class="switch"><input type="checkbox" id="x-explore-trend"><span class="slider"></span></label></div>
-    <div class="toggle-row sub-toggle"><span>├ Explore: News</span> <label class="switch"><input type="checkbox" id="x-explore-news"><span class="slider"></span></label></div>
-    <div class="toggle-row sub-toggle"><span>├ Explore: Sports</span> <label class="switch"><input type="checkbox" id="x-explore-sports"><span class="slider"></span></label></div>
-    <div class="toggle-row sub-toggle"><span>└ Explore: Entertainment</span> <label class="switch"><input type="checkbox" id="x-explore-ent"><span class="slider"></span></label></div>
+    <div class="toggle-row sub-toggle"><span>├ For you</span> <label class="switch"><input type="checkbox" id="x-explore-foryou"><span class="slider"></span></label></div>
+    <div class="toggle-row sub-toggle"><span>├ Trending</span> <label class="switch"><input type="checkbox" id="x-explore-trend"><span class="slider"></span></label></div>
+    <div class="toggle-row sub-toggle"><span>├ News</span> <label class="switch"><input type="checkbox" id="x-explore-news"><span class="slider"></span></label></div>
+    <div class="toggle-row sub-toggle"><span>├ Sports</span> <label class="switch"><input type="checkbox" id="x-explore-sports"><span class="slider"></span></label></div>
+    <div class="toggle-row sub-toggle"><span>└ Entertainment</span> <label class="switch"><input type="checkbox" id="x-explore-ent"><span class="slider"></span></label></div>
     
     <div class="toggle-row"><span>Home: "For you" Tab</span> <label class="switch"><input type="checkbox" id="x-home-foryou-tab"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Home: "Following" Tab</span> <label class="switch"><input type="checkbox" id="x-home-following-tab"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Block Algorithm Recs (Feed)</span> <label class="switch"><input type="checkbox" id="x-home-rec"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Block Algorithm Recs</span> <label class="switch"><input type="checkbox" id="x-home-rec"><span class="slider"></span></label></div>
     
     <div class="toggle-row"><span>Notifications Button</span> <label class="switch"><input type="checkbox" id="x-notif"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Follow Buttons (In-Feed)</span> <label class="switch"><input type="checkbox" id="x-follow-btn"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Who to Follow Suggestions</span> <label class="switch"><input type="checkbox" id="x-who-to-follow"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Follow Buttons</span> <label class="switch"><input type="checkbox" id="x-follow-btn"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Who to Follow Box</span> <label class="switch"><input type="checkbox" id="x-who-to-follow"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Grok Button (Sidebar)</span> <label class="switch"><input type="checkbox" id="x-grok"><span class="slider"></span></label></div>
     <div class="toggle-row"><span>Post Button</span> <label class="switch"><input type="checkbox" id="x-post-btn"><span class="slider"></span></label></div>
 
     <!-- 18+ SECURITY -->
-    <div class="section-header" style="color: #ff3333;">
+    <div class="section-header alert-header">
         <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>
         <span>18+ COGNITIVE BLOCK</span>
     </div>
-    <div class="toggle-row"><span>AI Blurrer (Image/Video)</span> <label class="switch"><input type="checkbox" id="ig-nsfw"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Adult Site Filter</span> <label class="switch"><input type="checkbox" id="adult-site"><span class="slider"></span></label></div>
-    <div class="toggle-row"><span>Word Search Engine Blocker</span> <label class="switch"><input type="checkbox" id="word-block"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Adult Site URL Filter</span> <label class="switch alert-switch"><input type="checkbox" id="adult-site"><span class="slider"></span></label></div>
+    <div class="toggle-row"><span>Word Search Engine Blocker</span> <label class="switch alert-switch"><input type="checkbox" id="word-block"><span class="slider"></span></label></div>
 
     <script src="popup.js"></script>
 </body>

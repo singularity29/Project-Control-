@@ -1,10 +1,11 @@
 let settings = {};
-let nsfwModel = null;
+let sponsorObserverBound = false;
 
 const defaultSettings = {
     'yt-thumb': false, 'yt-short': false, 'yt-home': false, 'yt-comm': false, 'yt-side': false,
     'yt-trend': false, 'yt-mix': false, 'yt-likes': false, 'yt-you': false, 'yt-subs': false,
     'yt-create': false, 'yt-bell': false, 'yt-ham': false, 'yt-prof': false, 'yt-desc': false, 'yt-search-sugg': false,
+    'yt-sponsor': false,
     'ig-reel': false, 'ig-story': false, 'ig-comm': false, 'ig-nsfw': false, 'adult-site': false, 'word-block': false,
     'ig-suggested': false, 'ig-feed-rec': false, 'ig-search': false, 'ig-notif': false, 'ig-create': false, 'ig-dash': false,
     'x-home-btn': false, 'x-follow-page-btn': false, 'x-chat-btn': false, 'x-creator-studio-btn': false, 
@@ -16,18 +17,13 @@ const defaultSettings = {
 };
 
 const explicitBlacklist = ['porn', 'nsfw', 'xvideo', 'pornhub', 'hentai', 'rule34', 'xxx', 'naked', 'nude', 'erotic', 'onlyfans'];
-
-const initAI = async () => {
-    if (typeof nsfwjs !== 'undefined' && !nsfwModel) {
-        try { nsfwModel = await nsfwjs.load(); } catch (e) {}
-    }
-};
+const SPONSORBLOCK_API = "https://sponsor.ajay.app/api/skipSegments";
 
 const runHardCease = () => {
     document.documentElement.innerHTML = `
-        <div style="background:#000;color:#ff3333;font-family:monospace;display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;margin:0;overflow:hidden;">
-            <svg style="width:100px;height:100px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>
-            <h1 style="letter-spacing:2px;margin-top:20px;">ACCESS DENIED VIA CONTROL</h1>
+        <div style="background:#090e10;color:#00ff88;font-family:monospace;display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;margin:0;overflow:hidden;">
+            <svg style="width:100px;height:100px;fill:currentColor;filter:drop-shadow(0 0 15px rgba(0,255,136,0.4));" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/></svg>
+            <h1 style="letter-spacing:2px;margin-top:20px;text-shadow:0 0 10px rgba(0,255,136,0.4);">ACCESS DENIED VIA CONTROL</h1>
         </div>`;
     window.stop();
 };
@@ -43,7 +39,6 @@ const updateEngine = () => {
     chrome.storage.local.get(defaultSettings, (result) => {
         settings = result;
         assessNetworkEnvironment();
-        if (settings['ig-nsfw']) initAI();
         applyRules();
     });
 };
@@ -51,11 +46,55 @@ const updateEngine = () => {
 const styleNode = document.createElement('style');
 document.documentElement.appendChild(styleNode);
 
+async function injectSponsorshipHighlights() {
+    if (!settings['yt-sponsor']) return;
+    const videoId = new URLSearchParams(window.location.search).get('v');
+    if (!videoId) return;
+
+    try {
+        const response = await fetch(`${SPONSORBLOCK_API}?videoID=${videoId}&categories=%5B%22sponsor%22%5D`);
+        if (!response.ok) return; 
+        
+        const data = await response.json();
+        const videoElement = document.querySelector('video');
+        
+        const attemptRender = () => {
+            const progressList = document.querySelector('.ytp-progress-list');
+            if (!videoElement || !progressList) return;
+            
+            document.querySelectorAll('.extension-sponsor-highlight').forEach(el => el.remove());
+
+            const duration = videoElement.duration;
+            if (Number.isNaN(duration) || duration === 0) return;
+
+            data.forEach(segmentData => {
+                const [start, end] = segmentData.segment;
+                const leftPercentage = (start / duration) * 100;
+                const widthPercentage = ((end - start) / duration) * 100;
+
+                const highlightNode = document.createElement('div');
+                highlightNode.className = "extension-sponsor-highlight";
+                highlightNode.style.cssText = `
+                    position: absolute; left: ${leftPercentage}%; width: ${widthPercentage}%;
+                    height: 100%; background-color: #ffd166; opacity: 0.9;
+                    z-index: 34; pointer-events: none; border-radius: 2px;
+                `;
+                progressList.appendChild(highlightNode);
+            });
+        };
+
+        if (videoElement) {
+            if (Number.isNaN(videoElement.duration)) {
+                videoElement.addEventListener('loadedmetadata', attemptRender);
+            } else { attemptRender(); }
+        }
+    } catch (error) {}
+}
+
 const applyRules = () => {
     const host = window.location.hostname;
     let cssRules = '';
 
-    // YouTube Rules
     if (host.includes('youtube.com')) {
         if (settings['yt-thumb']) cssRules += `ytd-thumbnail img, .ytp-videowall-still-image { opacity: 0 !important; background: #111 !important; } `;
         if (settings['yt-short']) cssRules += `ytd-rich-shelf-renderer[is-shorts], ytd-reel-shelf-renderer, a[title="Shorts"], ytd-mini-guide-entry-renderer[aria-label="Shorts"] { display: none !important; } `;
@@ -73,15 +112,19 @@ const applyRules = () => {
         if (settings['yt-prof']) cssRules += `yt-img-shadow#avatar, #avatar-btn, .ytp-profile-icon { display: none !important; } `;
         if (settings['yt-desc']) cssRules += `ytd-watch-metadata #description, ytd-video-description-infocards-section-renderer { display: none !important; } `;
         if (settings['yt-search-sugg']) cssRules += `.sbdd_b, .sbsb_a, ytd-searchbox #suggestions, .ytd-searchbox-spt { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; } `;
+        
+        if (settings['yt-sponsor'] && !sponsorObserverBound) {
+            window.addEventListener('yt-navigate-finish', injectSponsorshipHighlights);
+            sponsorObserverBound = true;
+            injectSponsorshipHighlights();
+        }
     }
 
-    // Instagram Rules
     if (host.includes('instagram.com')) {
         if (settings['ig-reel']) cssRules += `a[href^="/reels/"], main article div:has(a[href^="/reels/"]), [aria-label="Reels"] { display: none !important; } `;
         if (settings['ig-comm']) cssRules += `form textarea, div[role="button"]:has(svg[aria-label="Comment"]), ul[class*="comments"] { display: none !important; } `;
     }
 
-    // X (Twitter) Rules
     if (host.includes('x.com') || host.includes('twitter.com')) {
         if (settings['x-float-chat']) cssRules += `[data-testid="DMDrawer"], #layers div:has([data-testid="DMDrawer"]) { display: none !important; visibility: hidden !important; pointer-events: none !important; transform: scale(0) !important; } `;
         if (settings['x-float-grok']) cssRules += `[data-testid="grokFab"], button[aria-label="Grok"], #layers div:has([data-testid="grokFab"]) { display: none !important; visibility: hidden !important; pointer-events: none !important; transform: scale(0) !important; } `;
@@ -99,49 +142,64 @@ const applyRules = () => {
     handleDynamicBlocks();
 };
 
-const scanForNSFW = async () => {
-    if (!settings['ig-nsfw'] || !nsfwModel) return;
-    const images = document.querySelectorAll('img:not([data-ai-scanned]), video:not([data-ai-scanned])');
+const scanForNSFW = () => {
+    if (!settings['ig-nsfw']) return;
     
-    images.forEach(async (el) => {
-        el.setAttribute('data-ai-scanned', 'true');
-        
-        // Videos cannot be frame-scanned efficiently on client-side. Hard-blur instantly.
+    const mediaNodes = document.querySelectorAll('img:not([data-ai-scanned]), video:not([data-ai-scanned])');
+    
+    mediaNodes.forEach((el) => {
+        let targetUrl = null;
+
         if (el.tagName === 'VIDEO') {
-            el.style.setProperty('filter', 'blur(80px) brightness(0.1)', 'important');
-            return;
+            // Target the video cover frame rather than blindly blocking the tag
+            targetUrl = el.poster;
+            if (!targetUrl) {
+                // Instagram often nests a cover image next to the video node
+                const siblingImg = el.parentElement.querySelector('img');
+                if (siblingImg) targetUrl = siblingImg.src;
+            }
+            if (!targetUrl || targetUrl.startsWith('data:') || targetUrl.includes('10x10')) {
+                // If no valid cover is found yet, abort but DO NOT mark as scanned so it retries
+                return; 
+            }
+            el.setAttribute('data-ai-scanned', 'true');
+        } 
+        else if (el.tagName === 'IMG') {
+            el.setAttribute('data-ai-scanned', 'true');
+            targetUrl = el.src;
+            if (el.srcset) {
+                const srcs = el.srcset.split(',').map(s => s.trim().split(' '));
+                if (srcs.length > 0 && srcs[srcs.length - 1][0]) {
+                    targetUrl = srcs[srcs.length - 1][0]; 
+                }
+            }
+            if (!targetUrl || targetUrl.startsWith('data:') || targetUrl.includes('10x10')) return;
         }
 
-        if (el.tagName === 'IMG') {
-            if (el.width < 40 || el.height < 40) return;
-            
-            const processPredictions = (predictions) => {
-                // HYPER-SENSITIVE HALAL FILTER
-                // Triggers if image is >25% classified as 'Sexy' (Bikinis, crop tops, deep cleavage, underwear)
-                // Triggers if image is >20% classified as 'Porn' (Actual nudity)
-                const isExplicit = predictions.some(p => 
-                    (p.className === 'Porn' && p.probability > 0.20) || 
-                    (p.className === 'Sexy' && p.probability > 0.25) || 
-                    (p.className === 'Hentai' && p.probability > 0.20)
-                );
-                
-                if (isExplicit) {
-                    el.style.setProperty('filter', 'blur(80px) brightness(0.1)', 'important');
-                    if (el.parentElement) el.parentElement.style.setProperty('filter', 'blur(80px) brightness(0.1)', 'important');
-                }
-            };
+        if (targetUrl) {
+            chrome.runtime.sendMessage({ action: 'process_image_ai', url: targetUrl }, (response) => {
+                if (response && response.predictions) {
+                    const preds = response.predictions;
+                    const pClass = preds.find(p => p.className === 'Porn');
+                    const sClass = preds.find(p => p.className === 'Sexy');
+                    const hClass = preds.find(p => p.className === 'Hentai');
 
-            // CORS EVASION: Send the image URL to the Background Service Worker to fetch securely
-            chrome.runtime.sendMessage({ action: 'fetch_image', url: el.src }, async (response) => {
-                if (response && response.base64) {
-                    const proxyImg = new Image();
-                    proxyImg.src = response.base64;
-                    proxyImg.onload = async () => {
-                        try {
-                            const predictions = await nsfwModel.classify(proxyImg);
-                            processPredictions(predictions);
-                        } catch (e) {}
-                    };
+                    const pProb = pClass ? pClass.probability : 0;
+                    const sProb = sClass ? sClass.probability : 0;
+                    const hProb = hClass ? hClass.probability : 0;
+
+                    const isExplicit = (pProb > 0.15) || (sProb > 0.25) || (hProb > 0.15);
+                    
+                    if (isExplicit) {
+                        el.style.setProperty('filter', 'blur(80px) brightness(0.05)', 'important');
+                        let parent = el.parentElement;
+                        for(let i=0; i<3; i++) {
+                            if(parent) {
+                                parent.style.setProperty('filter', 'blur(80px) brightness(0.05)', 'important');
+                                parent = parent.parentElement;
+                            }
+                        }
+                    }
                 }
             });
         }
@@ -283,9 +341,7 @@ const handleDynamicBlocks = () => {
     if (settings['ig-nsfw']) scanForNSFW();
 };
 
-const observer = new MutationObserver(() => {
-    handleDynamicBlocks();
-});
+const observer = new MutationObserver(() => { handleDynamicBlocks(); });
 observer.observe(document.documentElement, { childList: true, subtree: true });
 
 updateEngine();
